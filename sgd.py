@@ -2,7 +2,6 @@ from math import e
 from array import array
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 def h(x,theta):
     """
@@ -17,7 +16,7 @@ def log_reg_sgd(x,y,a,max_iter=100,debug=True):
     with static learning rate
     """
     if debug: err = array('f',[])
-    ### initialize algorithm state ###
+    #initialize algorithm state
     m,n = x.shape
     theta = np.random.random(n)
     z = np.arange(m)
@@ -28,7 +27,7 @@ def log_reg_sgd(x,y,a,max_iter=100,debug=True):
         for i in z:
             #update weights
             theta = theta + a*(y[i]-h(x[i],theta))*x[i]
-            #compute the error and test for convergence
+            #compute the error
             if debug:err.append(sum([(y[i]-h(x[i],theta))**2 for i in range(m)]))
     if debug: return theta,err
     return theta
@@ -40,7 +39,7 @@ def log_reg_regularized_sgd(x,y,a,l=0.1,max_iter=100,debug=True):
     and static learning rate
     """
     if debug: err = array('f',[])
-    ### initialize algorithm state ###
+    #initialize algorithm state
     m,n = x.shape
     theta = np.random.random(n)
     z = np.arange(m)
@@ -51,7 +50,7 @@ def log_reg_regularized_sgd(x,y,a,l=0.1,max_iter=100,debug=True):
         for i in z:
             #update weights
             theta = theta + a*(y[i]-h(x[i],theta))*x[i] - l*2.*a*theta
-            #compute the error and test for convergence
+            #compute the error, current incorrect
             if debug:err.append(sum([(y[i]-h(x[i],theta))**2 for i in range(m)]))
     if debug: return theta,err
     return theta

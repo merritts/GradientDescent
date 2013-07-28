@@ -85,7 +85,7 @@ def test_sgd():
     plt.show()
     
     #predict the test set
-    pred=[h(x[i],theta) for i in xrange(500,1000)]
+    pred = [h(x[i],theta) for i in xrange(500,1000)]
     
     #plot the error as a function of training examples
     fpr, tpr, thresholds = metrics.roc_curve(y[500:], pred)
