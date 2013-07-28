@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sklearn.datasets
 import sklearn.preprocessing
-from sklearn import metrics
+from sklearn import metrics, datasets
 from scipy.stats import linregress
 
 from bgd import lr_bgd
@@ -76,24 +76,24 @@ def test_sgd():
     x,y = datasets.make_classification(1000)
     
     #train on half the data
-    theta,err = sgd.log_reg_sgd(x[:500],y[:500],a,max_iter=10)
+    theta,err = log_reg_sgd(x[:500],y[:500],a,max_iter=50)
     
     #plot the error
-    plt.plot(err)
-    plt.xlabel('Training example')
-    plt.ylabel('Error')
+    plt.plot(err, linewidth=2)
+    plt.xlabel('Training example', fontsize=20)
+    plt.ylabel('Error', fontsize=20)
     plt.show()
     
     #predict the test set
     pred=[h(x[i],theta) for i in xrange(500,1000)]
     
     #plot the error as a function of training examples
-    fpr, tpr, thresholds = metrics.roc_curve(y, pred)
+    fpr, tpr, thresholds = metrics.roc_curve(y[500:], pred)
     
     #plot the ROC curve
-    plt.plot(fpr,tpr)
-    plt.xlabel('False positive rate')
-    plt.ylabel('True positive rate')
+    plt.plot(fpr,tpr, linewidth=2)
+    plt.xlabel('False positive rate', fontsize=20)
+    plt.ylabel('True positive rate', fontsize=20)
     plt.show()
     
     #measure the performance using ROC and AUC
