@@ -1,13 +1,15 @@
 import sys
+from math import e
 
 import matplotlib.pyplot as plt
 import numpy as np
 import sklearn.datasets
 import sklearn.preprocessing
+from sklearn import metrics
 from scipy.stats import linregress
 
 from bgd import lr_bgd
-from sgd import lr_sgd
+from sgd import log_reg_sgd, h, log_reg_regularized_sgd
 
 def plot(x,y):
     #for each feature
@@ -15,18 +17,6 @@ def plot(x,y):
         plt.plot(x[:,i],y, 'ro')
         plt.title('feature: '+str(i))
         plt.show()
-
-def test_sgd():
-    #fit the model using sgd
-    theta2 = lr_sgd(a, train, ytrain)
-    print 'SGD: ', theta2
-    
-    vals = [(i,j) for i,j in zip(ytest, [np.dot(theta2,i) for i in test])]
-    plt.plot(map(lambda i: i[1], vals), 'g^', label='SGD')
-    plt.xlabel('Test example, i', fontsize=24)
-    plt.ylabel('P(i)', fontsize=24)
-    plt.legend(loc=0)
-    plt.show()
     
       
 def test_bgd():
@@ -71,8 +61,50 @@ def test_bgd():
     plt.plot(x, ytest, 'ro', label='Data')
     
     #plot predictions
-    plt.plot(x, [np.dot(theta1,i) for i in test], 'b-', label='Model')
+    plt.plot(x, [np.dot(theta1,i) for i in test], 'b-', linewidth=2, label='Model')
+    plt.legend(loc=0)
+    plt.xlabel('Scaled lower status of the population', fontsize=24)
+    plt.ylabel('Scaled home price', fontsize=24)
+    plt.show()
+
+
+def test_sgd():
+    #learning rate
+    a = 0.001
+    
+    #create a synthetic data set
+    x,y = datasets.make_classification(1000)
+    
+    #train on half the data
+    theta,err = sgd.log_reg_sgd(x[:500],y[:500],a,max_iter=10)
+    
+    #plot the error
+    plt.plot(err)
+    plt.xlabel('Training example')
+    plt.ylabel('Error')
     plt.show()
     
+    #predict the test set
+    pred=[h(x[i],theta) for i in xrange(500,1000)]
+    
+    #plot the error as a function of training examples
+    fpr, tpr, thresholds = metrics.roc_curve(y, pred)
+    
+    #plot the ROC curve
+    plt.plot(fpr,tpr)
+    plt.xlabel('False positive rate')
+    plt.ylabel('True positive rate')
+    plt.show()
+    
+    #measure the performance using ROC and AUC
+    auc = metrics.auc(fpr, tpr)
+    
+    print 'AUC of classifier: ', auc
+    
+
 if __name__=="__main__":
     test_bgd()
+    test_sgd()
+    
+    
+    
