@@ -1,25 +1,17 @@
 import sys
 from math import e
 from multiprocessing import Pool
+import timeit
 
 import matplotlib.pyplot as plt
 import numpy as np
-import sklearn.datasets
-import sklearn.preprocessing
 from sklearn import metrics, datasets
 from scipy.stats import linregress
 
 from bgd import lr_bgd
 from sgd import log_reg_sgd, h, log_reg_regularized_sgd
 
-def plot(x,y):
-    #for each feature
-    for i in range(x.shape[1]):
-        plt.plot(x[:,i],y, 'ro')
-        plt.title('feature: '+str(i))
-        plt.show()
-    
-      
+
 def test_bgd():
     #learning rate
     a = 0.0001
@@ -120,7 +112,7 @@ def train(input):
     return results
 
 
-def test_sgd_bagging_sgd():
+def test_parallel_sgd():
     #learning rate
     a = 0.001
     
@@ -130,58 +122,41 @@ def test_sgd_bagging_sgd():
     #append a 1 column at index 0 in x
     x = np.hstack((np.ones((x.shape[0],1)),x))
     
-    ### BAGGING VERSION ###
+    ### PARALLEL VERSION ###
     #worker pool
     pool = Pool(4)
     
-    input = [{'x':x[:250],'y':y[:250],'learning_rate':a,'iters':1000},
-             {'x':x[250:500],'y':y[250:500],'learning_rate':a,'iters':1000},
-             {'x':x[500:750],'y':y[500:750],'learning_rate':a,'iters':1000},
-             {'x':x[750:1000],'y':y[750:1000],'learning_rate':a,'iters':1000}]
+    input = [{'x':x[:250],'y':y[:250],'learning_rate':a,'iters':500},
+             {'x':x[250:500],'y':y[250:500],'learning_rate':a,'iters':500},
+             {'x':x[500:750],'y':y[500:750],'learning_rate':a,'iters':500},
+             {'x':x[750:1000],'y':y[750:1000],'learning_rate':a,'iters':500}]
     
     thetas = pool.map(train, input)
-    t = np.zeros(thetas[0].shape[0])
-    for i in thetas:
-        t+=i
-    t = t/float(len(thetas))
     
     #we take the average prediction
-    t_pred = []
     b_pred = []
     for i in xrange(1000,1500):
         p = 0.
         for theta in thetas:
             p+=h(x[i],theta)
         b_pred.append(p/4.)
-        t_pred.append(h(x[i],t))
     
     #plot the error as a function of training examples
     b_fpr, b_tpr, thresholds = metrics.roc_curve(y[1000:], b_pred)
-    t_fpr, t_tpr, thresholds = metrics.roc_curve(y[1000:], t_pred)
     
     #plot the ROC curve
     plt.plot(b_fpr,b_tpr, 'r-', label='Bagged', linewidth=2)
-    plt.plot(t_fpr,t_tpr, 'g-', label='Averaged', linewidth=2)
-    plt.xlabel('False positive rate')
-    plt.ylabel('True positive rate')
-    plt.show()
-    
-    #write results to file for later
-    with open('bag_results.tsv','w') as out:
-        for i,j in zip(b_fpr,b_tpr):
-            out.write("\t".join((str(i),str(j)))+"\n")
     
     
     #measure the performance using ROC and AUC
     b_auc = metrics.auc(b_fpr, b_tpr)
     
-    print 'AUC of bagged classifier: ', b_auc
+    print 'AUC of parallel classifier: ', b_auc
     ###
-    
-    
-    ### NON-BAGGING VERSION ###
+        
+    ### SEQUENTIAL VERSION ###
     #train on half the data
-    theta = log_reg_sgd(x[:1000],y[:1000],a,max_iter=100,debug=False)
+    theta = log_reg_sgd(x[:1000],y[:1000],a,max_iter=500,debug=False)
     
     #predict the test set
     pred = [h(x[i],theta) for i in xrange(1000,1500)]
@@ -189,29 +164,32 @@ def test_sgd_bagging_sgd():
     #plot the error as a function of training examples
     fpr, tpr, thresholds = metrics.roc_curve(y[1000:], pred)
     
-    #write results to file for later
-    with open('results.tsv','w') as out:
-        for i,j in zip(fpr,tpr):
-            out.write("\t".join((str(i),str(j)))+"\n")
-    
     #plot the ROC curve
     plt.plot(fpr,tpr, 'b-', label='Non-bagged', linewidth=2)
     plt.xlabel('False positive rate', fontsize=20)
     plt.ylabel('True positive rate', fontsize=20)
     plt.legend(loc=0)
-    plt.savefig('logistic_reg_roc.png',format='png')
     plt.show()
     
     #measure the performance using ROC and AUC
     auc = metrics.auc(fpr, tpr)
     
-    print 'AUC of non-bagging classifier: ', auc
+    print 'AUC of sequential classifier: ', auc
+    
+    #write results to file for later
+    with open('bag_results.tsv','w') as out:
+        for i,j in zip(b_fpr,b_tpr):
+            out.write("\t".join((str(i),str(j)))+"\n")
     
     
+    #write results to file for later
+    with open('results.tsv','w') as out:
+        for i,j in zip(fpr,tpr):
+            out.write("\t".join((str(i),str(j)))+"\n")
+
 
 if __name__=="__main__":
-    #test_bgd()
-    #test_sgd()
-    #test_parallel_sgd()
-    test_sgd_bagging_sgd()
+    test_bgd()
+    test_sgd()
+    test_parallel_sgd()
     
