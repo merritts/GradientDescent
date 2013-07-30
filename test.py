@@ -134,7 +134,7 @@ def test_parallel_sgd():
     thetas = pool.map(train, input)
     
     #compute the average
-    theta = np.mean(thetas)
+    theta = np.mean(thetas,axis=0)
     
     #we take the average prediction
     b_pred = [h(x[i],theta) for i in xrange(1000,1500)]
