@@ -133,13 +133,11 @@ def test_parallel_sgd():
     
     thetas = pool.map(train, input)
     
+    #compute the average
+    theta = np.mean(thetas)
+    
     #we take the average prediction
-    b_pred = []
-    for i in xrange(1000,1500):
-        p = 0.
-        for theta in thetas:
-            p+=h(x[i],theta)
-        b_pred.append(p/4.)
+    b_pred = [h(x[i],theta) for i in xrange(1000,1500)]
     
     #plot the error as a function of training examples
     b_fpr, b_tpr, thresholds = metrics.roc_curve(y[1000:], b_pred)
