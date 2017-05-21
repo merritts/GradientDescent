@@ -7,6 +7,3 @@ sgd.py implements unregularized and regularized stochastic logistic regression f
 two classes.
 
 bgp.py implements batch gradient descent for linear regression
-logistic regression hypothesis function
-    """
-    return e**(np.dot(x,theta))/(1.+e**(np.dot(x,theta)))
